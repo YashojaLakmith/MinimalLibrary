@@ -13,8 +13,6 @@ A REST API for a conceptual library catalog for sharing books among people.
 - Visitor mode for get an overview of listed books without logging in.
 - List the books the user have to share them with others and remove listed books.
 - Borrow and return books.
-- Transfer borrowed books among other users.
-- Simple messaging among the users.
 
 <a name="notes"></a>
 ### Special Notes
