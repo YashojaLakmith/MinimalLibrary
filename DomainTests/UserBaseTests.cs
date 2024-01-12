@@ -77,7 +77,7 @@ namespace DomainTests
             var user1 = User.CreateUser(id1);
             var user2 = User.CreateUser(id1);
 
-            bool result = user1 == user2;
+            bool result = user1 != user2;
 
             result.Should().BeFalse();
         }
@@ -90,7 +90,7 @@ namespace DomainTests
             var user1 = User.CreateUser(id1);
             var user2 = User.CreateUser(id2);
 
-            bool result = user1 == user2;
+            bool result = user1 != user2;
 
             result.Should().BeTrue();
         }

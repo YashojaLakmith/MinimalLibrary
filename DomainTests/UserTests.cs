@@ -1,4 +1,6 @@
-﻿using Domain;
+﻿using System.Security.Cryptography;
+
+using Domain;
 using Domain.BaseEntities;
 
 using FluentAssertions;
@@ -18,11 +20,11 @@ namespace DomainTests
         }
 
         [Fact]
-        public void CreateUser_WithNullEmptyOrWhitespaceId_ShouldBeNull()
+        public void CreateUser_WithNullEmptyOrWhitespaceId_ShouldThrowArgumentException()
         {
-            var user = User.CreateUser(string.Empty);
-
-            user.Should().Be(null);
+            var act = () => User.CreateUser(string.Empty);
+            
+            act.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -95,7 +97,7 @@ namespace DomainTests
             var user = User.CreateUser(Guid.NewGuid().ToString());
             var books = CreateABookList();
 
-            user = user.SetListedBooks(books);
+            user = user.SetBorrowedInBooks(books);
 
             user.BorrowedIn.Should().HaveCount(books.Count);
             user.BorrowedIn.SequenceEqual(books).Should().BeTrue();
@@ -107,37 +109,43 @@ namespace DomainTests
             var user = User.CreateUser(Guid.NewGuid().ToString());
             var books = CreateABookList();
 
-            user = user.SetListedBooks(books);
+            user = user.SetBorrowedAwayBooks(books);
 
             user.BorrowedOut.Should().HaveCount(books.Count);
             user.BorrowedOut.SequenceEqual(books).Should().BeTrue();
         }
 
         [Fact]
-        public void SetUserPassword_WithPasswordBytes_ShouldBeSameAsUserHashedPassword()
+        public void VerifyPassword_WithCorrectPasswordBytes_ShouldReturnTrue()
         {
+            var user = User.CreateUser(Guid.NewGuid().ToString());
+            var passwordBytes = Guid.NewGuid().ToByteArray();
+            user.SetPassword(passwordBytes);
 
+            var result = user.VerifyPassword(passwordBytes);
+
+            result.Should().BeTrue();
         }
 
         [Fact]
-        public void SetUserPassword_WithPasswordBytes_SaltShouldBeChanged()
+        public void VerifyPassword_WithIncorrectPasswordBytes_ShouldReturnFalse()
         {
+            var user = User.CreateUser(Guid.NewGuid().ToString());
+            var passwordBytes = Guid.NewGuid().ToByteArray();
+            user.SetPassword(passwordBytes);
 
-        }
+            var result = user.VerifyPassword(Guid.NewGuid().ToByteArray());
 
-        [Fact]
-        public void SetUserPasswordHashAndSalt_WithPasswordBytesAndSaltBytes_ShouldBeSameAsUserHashedPasswordAndSalt()
-        {
-
+            result.Should().BeFalse();
         }
 
         private static List<BookBase> CreateABookList()
         {
             var list = new List<BookBase>()
             {
-                Book.CreateBook(Guid.NewGuid().ToString(), User.CreateUser(Guid.NewGuid().ToString())),
-                Book.CreateBook(Guid.NewGuid().ToString(), User.CreateUser(Guid.NewGuid().ToString())),
-                Book.CreateBook(Guid.NewGuid().ToString(), User.CreateUser(Guid.NewGuid().ToString()))
+                Book.CreateBook(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), User.CreateUser(Guid.NewGuid().ToString())),
+                Book.CreateBook(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), User.CreateUser(Guid.NewGuid().ToString())),
+                Book.CreateBook(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), User.CreateUser(Guid.NewGuid().ToString()))
             };
 
             return list;

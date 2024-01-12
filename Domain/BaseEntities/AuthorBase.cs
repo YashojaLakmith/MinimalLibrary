@@ -1,5 +1,8 @@
 ﻿namespace Domain.BaseEntities
 {
+    /// <summary>
+    /// Base class for Authors
+    /// </summary>
     public abstract class AuthorBase : IEquatable<AuthorBase>
     {
         public string AuthorName { get; protected set; }
@@ -8,31 +11,42 @@
         protected AuthorBase(string name)
         {
             AuthorName = name;
+            AuthoredBooks = new List<BookBase>();
         }
 
         public override bool Equals(object? obj)
         {
-            throw new NotImplementedException();
+            return Equals(obj as AuthorBase);
         }
 
         public bool Equals(AuthorBase? other)
         {
-            throw new NotImplementedException();
+            if(other is null)
+            {
+                return false;
+            }
+
+            return AuthorName == other.AuthorName;
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            return AuthorName.GetHashCode();
         }
 
         public static bool operator ==(AuthorBase? lhs, AuthorBase? rhs)
         {
-            throw new NotImplementedException();
+            if(lhs is null)
+            {
+                return false;
+            }
+
+            return lhs.Equals(rhs);
         }
 
         public static bool operator !=(AuthorBase? lhs, AuthorBase? rhs)
         {
-            throw new NotImplementedException();
+            return !(lhs == rhs);
         }
     }
 }

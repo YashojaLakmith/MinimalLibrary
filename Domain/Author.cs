@@ -8,17 +8,23 @@ namespace Domain
 
         public static Author CreateAuthor(string name)
         {
-            throw new NotImplementedException();
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+
+            return new Author(name);
         }
 
         public Author SetName(string name)
         {
-            throw new NotImplementedException();
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+
+            AuthorName = name;
+            return this;
         }
 
         public Author SetAuthoredBooks(IReadOnlyCollection<BookBase> books)
         {
-            throw new NotImplementedException();
+            AuthoredBooks = books;
+            return this;
         }
     }
 }

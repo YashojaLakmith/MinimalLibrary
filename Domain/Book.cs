@@ -2,38 +2,57 @@
 
 namespace Domain
 {
+    /// <summary>
+    /// Represents a Book.
+    /// </summary>
     public class Book : BookBase
     {
-        private Book(string id, string name, UserBase user) : base(name, user) { }
+        private Book(string id, string name, UserBase user) : base(id, name, user) { }
 
         public static Book CreateBook(string id, string name, UserBase user)
         {
-            throw new NotImplementedException();
+            ArgumentException.ThrowIfNullOrEmpty(id, nameof(id));
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+            
+            return new Book(id, name, user);
         }
 
         public Book SetISBN(string isbn)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(isbn);
+            return this;
         }
 
-        public Book SetHolder(UserBase holder)
+        public Book SetHolder(UserBase? holder)
         {
-            throw new NotImplementedException();
+            CurrentHolder = holder;
+            return this;
         }
 
         public Book SetImageURL(string imageURL)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(imageURL))
+            {
+                BookImgUrl = "#";
+            }
+            else
+            {
+                BookImgUrl = imageURL;
+            }
+
+            return this;
         }
 
         public Book SetAvailability(BookAvailability availability)
         {
-            throw new NotImplementedException();
+            BookAvailability = availability;
+            return this;
         }
 
         public Book SetAuthors(IReadOnlyCollection<AuthorBase> authors)
         {
-            throw new NotImplementedException();
+            Authors = authors;
+            return this;
         }
     }
 }

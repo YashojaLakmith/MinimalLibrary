@@ -1,5 +1,8 @@
 ﻿namespace Domain.BaseEntities
 {
+    /// <summary>
+    /// Base class for Users
+    /// </summary>
     public class UserBase : IEquatable<UserBase>
     {
         public string UserId { get; }
@@ -21,27 +24,35 @@
 
         public override bool Equals(object? obj)
         {
-            throw new NotImplementedException();
+            return Equals(obj as UserBase);
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            return UserId.GetHashCode();
         }
 
         public bool Equals(UserBase? other)
         {
-            throw new NotImplementedException();
+            if(other is null)
+            {
+                return false;
+            }
+            return other.UserId == UserId;
         }
 
         public static bool operator ==(UserBase? left, UserBase? right)
         {
-            throw new NotImplementedException();
+            if(left is null || right is null)
+            {
+                return false;
+            }
+            return left.Equals(right);
         }
 
         public static bool operator !=(UserBase? left, UserBase? right)
         {
-            throw new NotImplementedException();
+            return !(left == right);
         }
     }
 }
