@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Dto;
+using Domain.Services;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
@@ -6,58 +9,112 @@ namespace API.Controllers
     [Route("api/v1/user")]
     public class UserAccountController : ControllerBase
     {
-        public UserAccountController() { }
+        private readonly IUserAccountService _userService;
+
+        public UserAccountController(IUserAccountService userAccountService)
+        {
+            _userService = userAccountService;
+        }
 
         [HttpGet]
-        public Task<IActionResult> GetAllAsync() //need pagination
+        public async Task<IActionResult> GetAllAsync([FromQuery] AdvancedUserSearch advancedSearch)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var users = await _userService.GetAllUsersAsync(advancedSearch);
+                return Ok(users);
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [HttpGet]
         [Route("{userId}")]
-        public Task<IActionResult> GetUserAsync([FromRoute]string userId) //redirect if id=me
+        public async Task<IActionResult> GetUserAsync([FromRoute]string userId) //redirect if id=me
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user = await _userService.GetSpecificUserAsync(userId);
+                return Ok(user);
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [HttpGet]
         [Route("me/")]
-        public Task<IActionResult> GetMyAccountAsync()
+        public async Task<IActionResult> GetMyAccountAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        [HttpGet]
-        [Route("advaced-search/")]
-        public Task<IActionResult> AdvancedUserSearchAsync()    //search query-> address, name, bookname, bookId, pagination
-        {
-            throw new NotImplementedException();
+            try
+            {
+                var me = await _userService.GetCurrentUserAsync("");
+                return Ok(me);
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [HttpPost]
-        public Task<IActionResult> CreateUserAsync()    //dto-> id, name, address, email, pw
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserCreation userCreation)    //dto-> id, name, address, email, pw
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _userService.CreateUserAsync(userCreation);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [HttpPatch]
-        public Task<IActionResult> ModifyUserAsync()    //dto-> name, address, email
+        public async Task<IActionResult> ModifyUserAsync([FromBody] UserModification userModification)    //dto-> name, address, email
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _userService.ModifyUserAsync(userModification);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [HttpPatch]
         [Route("change-password")]
-        public Task<IActionResult> ChangePasswordAsync() //dto-> old pw, new pw
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] PasswordChange passwordChange) //dto-> old pw, new pw
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _userService.ChangePasswordAsync(passwordChange);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [HttpDelete]
-        public Task<IActionResult> DeleteUserAsync()    //dto->pw
+        public async Task<IActionResult> DeleteUserAsync([FromBody] string password)    //dto->pw
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _userService.DeleteUserAsync(password);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

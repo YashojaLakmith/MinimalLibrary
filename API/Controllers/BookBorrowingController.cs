@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Dto;
+using Domain.Exceptions;
+using Domain.Services;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
@@ -6,34 +10,89 @@ namespace API.Controllers
     [Route("api/v1/borrowings/")]
     public class BookBorrowingController : ControllerBase
     {
-        public BookBorrowingController() { }
+        private readonly IBorrowingService _borrowingService;
+        private readonly IBookService _bookService;
+
+        public BookBorrowingController(IBorrowingService borrowingService, IBookService bookService)
+        {
+            _borrowingService = borrowingService;
+            _bookService = bookService;
+        }
 
         [HttpGet]
         [Route("in/")]
-        public Task<IActionResult> GetBooksBorrowedByMeAsync()
+        public async Task<IActionResult> GetBooksBorrowedByMeAsync([FromQuery] Pagination pagination)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var books = await _bookService.GetBorrowedToCurrentUserAsync(pagination, "");
+                return Ok(books);
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpGet]
         [Route("away/")]
-        public Task<IActionResult> GetBooksBorrowedFromMeAsync()
+        public async Task<IActionResult> GetBooksBorrowedFromMeAsync([FromQuery] Pagination pagination)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var books = await _bookService.GetBorrowedFromCurrentUserAsync(pagination, "");
+                return Ok(books);
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpPatch]
         [Route("borrow/")]
-        public Task<IActionResult> BorrowABook()    // dto-> userid, bookid
+        public async Task<IActionResult> BorrowABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)    // dto-> userid, bookid
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _borrowingService.HandleBorrowingBookAsync(returnAndBorrow);
+                return Ok();
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpPatch]
         [Route("return/")]
-        public Task<IActionResult> ReturnABookAsync()   // dto-> userid, bookid
+        public async Task<IActionResult> ReturnABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)   // dto-> userid, bookid
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _borrowingService.HandleReturningBookAsync(returnAndBorrow);
+                return Ok();
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Dto;
+using Domain.Exceptions;
+using Domain.Services;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
@@ -6,52 +10,122 @@ namespace API.Controllers
     [Route("api/v1/book/")]
     public class BookController : ControllerBase
     {
-        public BookController() { }
+        private readonly IBookService _bookService;
+
+        public BookController(IBookService bookService)
+        {
+            _bookService = bookService;
+        }
 
         [HttpGet]
-        public Task<IActionResult> GetAllBooksAsync()    // dto->pagination
+        public async Task<IActionResult> GetAllBooksAsync([FromQuery] Pagination pagination, [FromBody] AdvancedBookSearch advancedSearch)    // dto->pagination
         {
-            throw new NotImplementedException();
+            try
+            {
+                var books = await _bookService.GetAllBooksAsync(pagination, advancedSearch);
+                return Ok(books);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpGet]
         [Route("my/")]
-        public Task<IActionResult> GetMyListedBooks()
+        public async Task<IActionResult> GetMyListedBooks([FromQuery] Pagination pagination)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var books = await _bookService.GetListingsOfCurrentUserAsync(pagination, "");
+                return Ok(books);
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpGet]
         [Route("{bookId}")]
-        public Task<IActionResult> GetBookByIdAsync([FromRoute] string bookId)
+        public async Task<IActionResult> GetBookByIdAsync([FromRoute] string bookId)
         {
-            throw new NotImplementedException();
-        }
-
-        [HttpGet]
-        [Route("advanced-search/")]
-        public Task<IActionResult> AdvancedBookSearch() // dto-> isbn, name, authornames[]
-        {
-            throw new NotImplementedException();
+            try
+            {
+                var book = await _bookService.GetSpecificBookByIdAsync(bookId);
+                return Ok(book);
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpPost]
-        public Task<IActionResult> CreateABookAsync() // dto->isbn, name, imgurl, authorname[]
+        public async Task<IActionResult> CreateABookAsync([FromBody] BookCreate bookCreate) // dto->isbn, name, imgurl, authorname[]
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _bookService.HandleCreateBookAsync(bookCreate);
+                return Created();
+            }
+            catch (ValidationFailedException)
+            {
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpPatch]
-        public Task<IActionResult> ModifyBookAsync()    // dto->id, isbn, name, imgurl, authors[], status
+        public async Task<IActionResult> ModifyBookAsync([FromBody] ModifyBook modifyBook)    // dto->id, isbn, name, imgurl, authors[], status
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _bookService.HandleModifyBookAsync(modifyBook);
+                return Ok();
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (ValidationFailedException)
+            {
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpDelete]
         [Route("{bookId}")]
-        public Task<IActionResult> DeleteBookAsync([FromRoute] string bookId)
+        public async Task<IActionResult> DeleteBookAsync([FromRoute] string bookId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _bookService.HandleDeleteBookAsync(bookId);
+                return Ok();
+            }
+            catch (RecordNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
     }
 }

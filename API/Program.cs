@@ -1,15 +1,34 @@
+using Microsoft.AspNetCore.Authentication;
+
 namespace API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var services = builder.Services;
+            var config = builder.Configuration;
+            var env = builder.Environment;
+
+            services.AddControllers(o => o.SuppressAsyncSuffixInActionNames = false);
+            services.AddDistributedRedisCache(o => o.Configuration = "");
+            services.AddAuthentication(UserAuthenticationHandler.SCHEME_NAME)
+                            .AddScheme<AuthenticationSchemeOptions, UserAuthenticationHandler>(UserAuthenticationHandler.SCHEME_NAME, null);
+
             var app = builder.Build();
 
-            app.MapGet("/", () => "Hello World!");
+            if (env.IsDevelopment()) { app.UseDeveloperExceptionPage(); }
 
-            app.Run();
+            app.UseHttpsRedirection();
+            app.UseAuthentication();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.MapControllers();
+
+            await app.RunAsync();
+
+            return 0;
         }
     }
 }
