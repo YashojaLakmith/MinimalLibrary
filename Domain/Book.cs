@@ -4,9 +4,9 @@ namespace Domain
 {
     public class Book : BookBase
     {
-        private Book(string name, UserBase user) : base(name, user) { }
+        private Book(string id, string name, UserBase user) : base(name, user) { }
 
-        public static Book CreateBook(string name, UserBase user)
+        public static Book CreateBook(string id, string name, UserBase user)
         {
             throw new NotImplementedException();
         }

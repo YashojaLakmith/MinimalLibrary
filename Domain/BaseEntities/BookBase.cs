@@ -2,6 +2,7 @@
 {
     public abstract class BookBase
     {
+        public string BookId { get; }
         public string BookName { get; }
         public string ISBN { get; protected set; }
         public UserBase Owner { get; protected set; }
