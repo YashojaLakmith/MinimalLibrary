@@ -1,4 +1,12 @@
+using DataLayer;
+
+using Domain.DataAccess;
+using Domain.Services;
+using Domain.Services.DefaultImplementations;
+
 using Microsoft.AspNetCore.Authentication;
+
+using MongoDB.Driver;
 
 namespace API
 {
@@ -11,13 +19,23 @@ namespace API
             var config = builder.Configuration;
             var env = builder.Environment;
 
+            var mongoDbConnString = config["dbConnString"];     // For local development only
+            var redisConnString = config["redisConnString"];
+
+            ArgumentNullException.ThrowIfNull(nameof(mongoDbConnString));
+            ArgumentNullException.ThrowIfNull(nameof(redisConnString));
+
             services.AddControllers(o => o.SuppressAsyncSuffixInActionNames = false);
-            services.AddStackExchangeRedisCache(o =>
-            {
-                o.Configuration = "";
-            });            
+            services.AddStackExchangeRedisCache(o => o.Configuration = redisConnString);        // redis connection string
+            services.AddSingleton<IMongoClient>(new MongoClient(mongoDbConnString));            // mongodb connection string
             services.AddAuthentication(UserAuthenticationHandler.SCHEME_NAME)
                             .AddScheme<AuthenticationSchemeOptions, UserAuthenticationHandler>(UserAuthenticationHandler.SCHEME_NAME, null);
+
+            services.AddScoped<IUserDataAccess, UserDataAccess>();
+            services.AddScoped<IBookDataAccess, BookDataAccess>();
+            services.AddScoped<IUserAccountService, DefaultUserAccountService>();
+            services.AddScoped<IBookService, DefaultBookService>();
+            services.AddScoped<IBorrowingService, DefaultBorrowingService>();
 
             var app = builder.Build();
 
