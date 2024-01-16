@@ -15,7 +15,7 @@ namespace API
             services.AddStackExchangeRedisCache(o =>
             {
                 o.Configuration = "";
-            });
+            });            
             services.AddAuthentication(UserAuthenticationHandler.SCHEME_NAME)
                             .AddScheme<AuthenticationSchemeOptions, UserAuthenticationHandler>(UserAuthenticationHandler.SCHEME_NAME, null);
 
