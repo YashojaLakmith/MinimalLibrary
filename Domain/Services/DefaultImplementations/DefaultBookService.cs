@@ -1,54 +1,34 @@
-﻿using Domain.Dto;
+﻿using Domain.DataAccess;
+using Domain.Dto;
 
-namespace Domain.Services.MongoBasedServices
+namespace Domain.Services.DefaultImplementations
 {
-    public class BookService : IBookService
+    public class DefaultBookService : IBookService
     {
-        public BookService()
+        private readonly IBookDataAccess _bookData;
+
+        public DefaultBookService(IBookDataAccess bookData)
         {
-            
+            _bookData = bookData;
         }
 
         public Task<IEnumerable<BookMinimalInfo>> GetAllBooksAsync(Pagination pagination, AdvancedBookSearch advancedSearch, CancellationToken cancellationToken = default)
         {
-            /*  pagination validation
-                deconstruct search fields
-                repo.getAll(filters, skip, take)
-                cast
-                return
-            */
             throw new NotImplementedException();
         }
 
         public Task<IEnumerable<BookWithBorrower>> GetBorrowedFromCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            /*
-                pagination validation
-                check existance of user
-                repo.getBorrowedFromCurrentUser(uid)
-            */
             throw new NotImplementedException();
         }
 
         public Task<IEnumerable<BookMinimalInfo>> GetBorrowedToCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            /*
-                pagination validation
-                check existance of user
-                repo.getBorrowedToCurrentUser(uid)
-            */
-
             throw new NotImplementedException();
         }
 
         public Task<IEnumerable<BookMinimalInfo>> GetListingsOfCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            /*
-                pagination validation
-                check existance of user
-                repo.getListingsOfCurrentUser(uid)
-            */
-
             throw new NotImplementedException();
         }
 

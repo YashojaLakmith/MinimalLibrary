@@ -1,8 +1,9 @@
-﻿using Domain.BaseEntities;
+﻿using Domain;
+using Domain.BaseEntities;
 
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Domain.Services.MongoBasedServices.Schema
+namespace DataLayer.Schema
 {
     [BsonIgnoreExtraElements]
     public class UserSchema
@@ -15,7 +16,7 @@ namespace Domain.Services.MongoBasedServices.Schema
         public byte[] PasswordHash { get; set; }
         public byte[] Salt { get; set; }
 
-        public User AsUser()
+        public User AsEntity()
         {
             return User.CreateUser(UserId)
                             .SetUserName(UserName)

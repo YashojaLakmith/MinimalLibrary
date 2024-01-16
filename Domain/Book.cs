@@ -7,14 +7,20 @@ namespace Domain
     /// </summary>
     public class Book : BookBase
     {
-        private Book(string id, string name, UserBase user) : base(id, name, user) { }
+        private Book(string id, string name) : base(id, name) { }
 
-        public static Book CreateBook(string id, string name, UserBase user)
+        public static Book CreateBook(string id, string name)
         {
             ArgumentException.ThrowIfNullOrEmpty(id, nameof(id));
             ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
             
-            return new Book(id, name, user);
+            return new Book(id, name);
+        }
+
+        public Book SetOwner(UserBase owner)
+        {
+            Owner = owner;
+            return this;
         }
 
         public Book SetISBN(string isbn)
