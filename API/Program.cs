@@ -19,8 +19,8 @@ namespace API
             var config = builder.Configuration;
             var env = builder.Environment;
 
-            var mongoDbConnString = config["dbConnString"];     // For local development only
-            var redisConnString = config["redisConnString"];
+            var mongoDbConnString = "mongodb://localhost:27017";    //config["dbConnString"];     // For local development only
+            var redisConnString = "localhost:6379";                 //config["redisConnString"];
 
             ArgumentNullException.ThrowIfNull(nameof(mongoDbConnString));
             ArgumentNullException.ThrowIfNull(nameof(redisConnString));
