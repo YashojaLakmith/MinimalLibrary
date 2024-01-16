@@ -8,5 +8,12 @@ namespace Domain
         {
             return Encoding.ASCII.GetBytes(password);
         }
+
+        internal static (int, int) GetSkipAndTake(int pageNo, int recordsPerPage)
+        {
+            int skip = (pageNo - 1) * recordsPerPage;
+
+            return (skip, recordsPerPage);
+        }
     }
 }

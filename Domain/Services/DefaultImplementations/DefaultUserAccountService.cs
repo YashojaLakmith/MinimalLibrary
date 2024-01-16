@@ -2,23 +2,24 @@
 using Domain.DataAccess;
 using Domain.Dto;
 using Domain.Exceptions;
+using Domain.Extensions;
 using Domain.Validations;
 
 namespace Domain.Services.DefaultImplementations
 {
     public class DefaultUserAccountService : IUserAccountService
     {
+        private readonly IBookDataAccess _bookData;
         private readonly IUserDataAccess _userData;
 
-        public DefaultUserAccountService(IUserDataAccess userData)
+        public DefaultUserAccountService(IUserDataAccess userData, IBookDataAccess bookData)
         {
+            _bookData = bookData;
             _userData = userData;
         }
 
         public async Task ChangePasswordAsync(PasswordChange changePassword, CancellationToken cancellationToken = default)
         {
-            // Needs password validation
-
             var user = await _userData.GetUserByIdAsync(changePassword.UserId, cancellationToken) ?? throw new RecordNotFoundException("User");
             if (!user.IsActive)
             {
@@ -38,8 +39,6 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task ChangePasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
         {
-            // Needs password vaidation
-
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
             var passwordBytes = Utility.GetPasswordBytes(newPassword);
             user.SetPassword(passwordBytes);
@@ -72,8 +71,6 @@ namespace Domain.Services.DefaultImplementations
         public async Task DeleteUserAsync(string userId, string password, CancellationToken cancellationToken = default)
         {
             // Does not delete. Marks as deleted
-            // Needs password validation
-
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
             if (!user.IsActive)
@@ -85,19 +82,29 @@ namespace Domain.Services.DefaultImplementations
             await _userData.ModifyUserAsync(user, cancellationToken);
         }
 
-        public Task<IEnumerable<UserPublicView>> GetAllUsersAsync(AdvancedUserSearch advancedSearch, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<UserPublicView>> GetAllUsersAsync(AdvancedUserSearch advancedSearch, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            (int skip, int take) = Utility.GetSkipAndTake(advancedSearch.PageNo, advancedSearch.ResultCount);
+            return (await _userData.GetAllUsersAsync(advancedSearch.UserName, skip, take, cancellationToken))
+                                .Select(x => x.AsUserPublicView());
         }
 
-        public Task<CurrentUser> GetCurrentUserAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<CurrentUser> GetCurrentUserAsync(string userId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
+            var books = await _bookData.GetAllBooksAsync(userId, 0, 0, cancellationToken);
+
+            return user.SetListedBooks(books.ToList())
+                            .AsCurrentUser();
         }
 
-        public Task<UserPublicView> GetSpecificUserAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<CurrentUser> GetSpecificUserAsync(string userId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
+            var books = await _bookData.GetListedBooksOfUser(userId, 0, 0, cancellationToken);
+
+            return user.SetListedBooks(books.ToList())
+                            .AsCurrentUser();
         }
 
         public async Task ModifyUserAsync(UserModification userModification, CancellationToken cancellationToken = default)
