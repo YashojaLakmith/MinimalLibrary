@@ -14,11 +14,10 @@
         public IReadOnlyCollection<string> Authors { get; protected set; }
         public BookAvailability BookAvailability { get; protected set; }
 
-        protected BookBase(string id, string bookName, UserBase owner)
+        protected BookBase(string id, string bookName)
         {
             BookId = id;
             BookName = bookName;
-            Owner = owner;
             Authors = new List<string>();
             BookAvailability = BookAvailability.Available;
         }
