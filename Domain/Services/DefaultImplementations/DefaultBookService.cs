@@ -2,6 +2,8 @@
 using Domain.DataAccess;
 using Domain.Dto;
 using Domain.Exceptions;
+using Domain.Extensions;
+using Domain.Validations;
 
 namespace Domain.Services.DefaultImplementations
 {
@@ -16,29 +18,59 @@ namespace Domain.Services.DefaultImplementations
             _userData = userData;
         }
 
-        public Task<IEnumerable<BookMinimalInfo>> GetAllBooksAsync(Pagination pagination, AdvancedBookSearch advancedSearch, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<BookMinimalInfo>> GetAllBooksAsync(Pagination pagination, AdvancedBookSearch advancedSearch, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            // Needs validation
+            BasicValidation.ValidatePagination(pagination);
+
+            (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
+            return (await _bookData.GetAllBooksAsync(advancedSearch.BookName, skip, take, cancellationToken))
+                            .Select(x => x.AsBookMinimalInfo());
         }
 
-        public Task<IEnumerable<BookWithBorrower>> GetBorrowedFromCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<BookWithBorrower>> GetBorrowedFromCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            //Needs validation
+            BasicValidation.ValidatePagination(pagination);
+
+            var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
+
+            (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
+            return (await _bookData.GetBooksBorrowedByUser(userId, skip, take))
+                            .Select(x => x.AsBookWithBorrower());
         }
 
-        public Task<IEnumerable<BookMinimalInfo>> GetBorrowedToCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<BookMinimalInfo>> GetBorrowedToCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            // Needs pagination validation
+            BasicValidation.ValidatePagination(pagination);
+
+            var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
+
+            (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
+            return (await _bookData.GetBooksBorrowedToUser(userId, skip, take, cancellationToken))
+                            .Select(x => x.AsBookMinimalInfo());
         }
 
-        public Task<IEnumerable<BookMinimalInfo>> GetListingsOfCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<BookMinimalInfo>> GetListingsOfCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            //Needs validation
+            BasicValidation.ValidatePagination(pagination);
+
+            var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
+
+            (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
+            return (await _bookData.GetListedBooksOfUser(userId, skip, take, cancellationToken))
+                            .Select(x => x.AsBookMinimalInfo());
         }
 
-        public Task<BookPublicInfo> GetSpecificBookByIdAsync(string bookId, CancellationToken cancellationToken = default)
+        public async Task<BookPublicInfo> GetSpecificBookByIdAsync(string bookId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var book = await _bookData.GetBookByIdAsync(bookId, cancellationToken) ?? throw new RecordNotFoundException("Book");
+            var user = await _userData.GetUserByIdAsync(book.Owner.UserId, cancellationToken) ?? throw new RecordNotFoundException("User");
+
+            book.SetOwner(user);
+            return book.AsBookPublicInfo();
         }
 
         public async Task HandleCreateBookAsync(BookCreate bookCreate, string userId, CancellationToken cancellationToken = default)

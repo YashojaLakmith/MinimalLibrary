@@ -13,7 +13,7 @@ namespace Domain.Services
 
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task<UserPublicView> GetSpecificUserAsync(string userId, CancellationToken cancellationToken = default);
+        Task<CurrentUser> GetSpecificUserAsync(string userId, CancellationToken cancellationToken = default);
 
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="OperationCanceledException"/>
