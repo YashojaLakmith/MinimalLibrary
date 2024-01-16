@@ -24,7 +24,7 @@ namespace Domain.Services.DefaultImplementations
             BasicValidation.ValidatePagination(pagination);
 
             (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
-            return (await _bookData.GetAllBooksAsync(advancedSearch.BookName, skip, take, cancellationToken))
+            return (await _bookData.GetAllBooksAsync(advancedSearch.BookName, advancedSearch.AuthorName, skip, take, cancellationToken))
                             .Select(x => x.AsBookMinimalInfo());
         }
 
@@ -36,7 +36,7 @@ namespace Domain.Services.DefaultImplementations
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
             (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
-            return (await _bookData.GetBooksBorrowedByUser(userId, skip, take))
+            return (await _bookData.GetBooksBorrowedFromUserAsync(userId, skip, take))
                             .Select(x => x.AsBookWithBorrower());
         }
 
@@ -48,7 +48,7 @@ namespace Domain.Services.DefaultImplementations
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
             (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
-            return (await _bookData.GetBooksBorrowedToUser(userId, skip, take, cancellationToken))
+            return (await _bookData.GetBooksBorrowedToUserAsync(userId, skip, take, cancellationToken))
                             .Select(x => x.AsBookMinimalInfo());
         }
 
@@ -60,7 +60,7 @@ namespace Domain.Services.DefaultImplementations
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
             (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
-            return (await _bookData.GetListedBooksOfUser(userId, skip, take, cancellationToken))
+            return (await _bookData.GetListedBooksOfUserAsync(userId, skip, take, cancellationToken))
                             .Select(x => x.AsBookMinimalInfo());
         }
 

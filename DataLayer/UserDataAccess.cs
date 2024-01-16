@@ -11,6 +11,7 @@ namespace DataLayer
     {
         private const string COLLECTION_NAME = "UserAccountCollection";
         private readonly IMongoCollection<UserSchema> _userCollection;
+        private readonly FilterDefinitionBuilder<UserSchema> _filterBuilder = Builders<UserSchema>.Filter;
 
         public UserDataAccess(IMongoClient mongoClient)
         {
@@ -28,9 +29,15 @@ namespace DataLayer
             var res = await _userCollection.DeleteOneAsync(u => u.UserId == userId, cancellationToken);
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync(string nameFilter, int skip, int take, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<User>> GetAllUsersAsync(string? nameFilter, int skip, int take, CancellationToken cancellationToken = default)
         {
-            return (await _userCollection.Find(u => u.UserName.Contains(nameFilter))
+            var filter = _filterBuilder.Empty;
+            if(nameFilter is not null)
+            {
+                filter = _filterBuilder.Where(x => x.UserName.Contains(nameFilter, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return (await _userCollection.Find(filter)
                                             .Skip(skip)
                                             .Limit(take)
                                             .ToListAsync())
