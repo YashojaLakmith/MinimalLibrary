@@ -11,6 +11,7 @@ namespace DataLayer
     {
         private const string COLLECTION_NAME = "BookCollection";
         private readonly IMongoCollection<BookSchema> _bookCollection;
+        private readonly FilterDefinitionBuilder<BookSchema> _filterBuilder = Builders<BookSchema>.Filter;
 
         public BookDataAccess(IMongoClient mongoClient)
         {
@@ -28,9 +29,21 @@ namespace DataLayer
             await _bookCollection.DeleteOneAsync(x => x.BookId ==  bookId, cancellationToken: cancellationToken);
         }
 
-        public async Task<IEnumerable<Book>> GetAllBooksAsync(string nameFilter, int skip, int take, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Book>> GetAllBooksAsync(string? nameFilter, string? authorFilter, int skip, int take, CancellationToken cancellationToken = default)
         {
-            return (await _bookCollection.Find(x => x.BookId.Contains(nameFilter, StringComparison.OrdinalIgnoreCase))
+            FilterDefinition<BookSchema> filter = _filterBuilder.Empty;
+            if(nameFilter is not null)
+            {
+                filter = _filterBuilder.Where(x => x.BookName.Contains(nameFilter));
+            }
+
+            if(authorFilter is not null)
+            {
+                var whereFilter = _filterBuilder.Where(x => x.Authors.Contains(authorFilter));
+                filter = _filterBuilder.And(filter, whereFilter);
+            }
+
+            return (await _bookCollection.Find(filter)
                                     .ToListAsync(cancellationToken))
                                     .Select(y => y.AsEntity());
         }
@@ -40,10 +53,9 @@ namespace DataLayer
             return (await _bookCollection.Find(x => x.BookId == bookId)
                                             .FirstOrDefaultAsync(cancellationToken))?
                                             .AsEntity();
-
         }
 
-        public async Task<IEnumerable<Book>> GetBooksBorrowedByUser(string userId, int skip, int take, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Book>> GetBooksBorrowedFromUserAsync(string userId, int skip, int take, CancellationToken cancellationToken = default)
         {
             return (await _bookCollection.Find(x => x.OwnerId == userId && !string.IsNullOrEmpty(x.CurrentHolderId))
                                             .Skip(skip)
@@ -52,7 +64,7 @@ namespace DataLayer
                                             .Select(y => y.AsEntity());
         }
 
-        public async Task<IEnumerable<Book>> GetBooksBorrowedToUser(string userId, int skip, int take, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Book>> GetBooksBorrowedToUserAsync(string userId, int skip, int take, CancellationToken cancellationToken = default)
         {
             return (await _bookCollection.Find(x => x.CurrentHolderId == userId)
                                             .Skip(skip)
@@ -61,7 +73,7 @@ namespace DataLayer
                                             .Select(y => y.AsEntity());
         }
 
-        public async Task<IEnumerable<Book>> GetListedBooksOfUser(string userId, int skip, int take, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Book>> GetListedBooksOfUserAsync(string userId, int skip, int take, CancellationToken cancellationToken = default)
         {
             return (await _bookCollection.Find(x => x.OwnerId == userId)
                                             .Skip(skip)

@@ -1,4 +1,4 @@
 ﻿namespace Domain.Dto
 {
-    public record AdvancedBookSearch(string? ISBN, string? BookName, string? AuthorNames);
+    public record AdvancedBookSearch(string? BookName, string? AuthorName);
 }

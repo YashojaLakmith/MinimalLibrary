@@ -92,7 +92,7 @@ namespace Domain.Services.DefaultImplementations
         public async Task<CurrentUser> GetCurrentUserAsync(string userId, CancellationToken cancellationToken = default)
         {
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
-            var books = await _bookData.GetAllBooksAsync(userId, 0, 0, cancellationToken);
+            var books = await _bookData.GetListedBooksOfUserAsync(userId, 0, 0, cancellationToken);
 
             return user.SetListedBooks(books.ToList())
                             .AsCurrentUser();
@@ -101,7 +101,7 @@ namespace Domain.Services.DefaultImplementations
         public async Task<CurrentUser> GetSpecificUserAsync(string userId, CancellationToken cancellationToken = default)
         {
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
-            var books = await _bookData.GetListedBooksOfUser(userId, 0, 0, cancellationToken);
+            var books = await _bookData.GetListedBooksOfUserAsync(userId, 0, 0, cancellationToken);
 
             return user.SetListedBooks(books.ToList())
                             .AsCurrentUser();
