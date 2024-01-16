@@ -8,6 +8,8 @@
         public string Street1 { get; }
         public string Street2 { get; }
 
+        public Address() { }
+
         private Address(string street1, string street2)
         {
             Street1 = street1;

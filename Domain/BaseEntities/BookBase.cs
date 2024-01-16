@@ -11,7 +11,7 @@
         public UserBase Owner { get; protected set; }
         public UserBase? CurrentHolder { get; protected set; }
         public string BookImgUrl { get; protected set; }
-        public IReadOnlyCollection<AuthorBase> Authors { get; protected set; }
+        public IReadOnlyCollection<string> Authors { get; protected set; }
         public BookAvailability BookAvailability { get; protected set; }
 
         protected BookBase(string id, string bookName, UserBase owner)
@@ -19,7 +19,7 @@
             BookId = id;
             BookName = bookName;
             Owner = owner;
-            Authors = new List<AuthorBase>();
+            Authors = new List<string>();
             BookAvailability = BookAvailability.Available;
         }
 

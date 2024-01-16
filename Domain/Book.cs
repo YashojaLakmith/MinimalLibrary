@@ -49,7 +49,7 @@ namespace Domain
             return this;
         }
 
-        public Book SetAuthors(IReadOnlyCollection<AuthorBase> authors)
+        public Book SetAuthors(IReadOnlyCollection<string> authors)
         {
             Authors = authors;
             return this;

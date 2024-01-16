@@ -7,10 +7,10 @@ namespace Domain.Services
     {
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task HandleBorrowingBookAsync(ReturnAndBorrow returnAndBorrow, CancellationToken cancellationToken = default);
+        Task HandleBorrowingBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default);
 
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task HandleReturningBookAsync(ReturnAndBorrow returnAndBorrow, CancellationToken cancellationToken = default);
+        Task HandleReturningBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default);
     }
 }

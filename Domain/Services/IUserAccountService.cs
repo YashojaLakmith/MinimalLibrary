@@ -26,6 +26,7 @@ namespace Domain.Services
 
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="ValidationFailedException"/>
+        ///<exception cref="ArgumentException"/>
         ///<exception cref="OperationCanceledException"/>
         Task ChangePasswordAsync(PasswordChange changePassword, CancellationToken cancellationToken = default);
 
@@ -41,6 +42,6 @@ namespace Domain.Services
 
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task DeleteUserAsync(string password,  CancellationToken cancellationToken = default);
+        Task DeleteUserAsync(string userId, string password,  CancellationToken cancellationToken = default);
     }
 }

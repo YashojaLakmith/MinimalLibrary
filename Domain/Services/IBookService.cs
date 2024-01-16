@@ -26,15 +26,15 @@ namespace Domain.Services
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="ValidationFailedException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task HandleModifyBookAsync(ModifyBook modifyBook, CancellationToken cancellationToken = default);
+        Task HandleModifyBookAsync(ModifyBook modifyBook, string userId, CancellationToken cancellationToken = default);
 
         ///<exception cref="ValidationFailedException"/>
         ///<exception cref="AlreadyExistsException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task HandleCreateBookAsync(BookCreate bookCreate, CancellationToken cancellationToken = default);
+        Task HandleCreateBookAsync(BookCreate bookCreate, string userId, CancellationToken cancellationToken = default);
 
         ///<exception cref="RecordNotFoundException"/>
         ///<exception cref="OperationCanceledException"/>
-        Task HandleDeleteBookAsync(string bookId, CancellationToken cancellationToken = default);
+        Task HandleDeleteBookAsync(string bookId, string userId, CancellationToken cancellationToken = default);
     }
 }

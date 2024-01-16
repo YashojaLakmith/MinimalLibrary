@@ -8,7 +8,10 @@
 
   <ItemGroup>
     <Folder Include="DataAccess\" />
-    <Folder Include="Validations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.23.1" />
   </ItemGroup>
 
 </Project>

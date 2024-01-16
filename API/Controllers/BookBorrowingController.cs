@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [ApiController]
     [Route("api/v1/borrowings/")]
-    public class BookBorrowingController : ControllerBase
+    public class BookBorrowingController : BaseApiController
     {
         private readonly IBorrowingService _borrowingService;
         private readonly IBookService _bookService;
@@ -23,9 +22,15 @@ namespace API.Controllers
         [Route("in/")]
         public async Task<IActionResult> GetBooksBorrowedByMeAsync([FromQuery] Pagination pagination)
         {
+            var uid = GetCuurentUserId();
+            if (uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                var books = await _bookService.GetBorrowedToCurrentUserAsync(pagination, "");
+                var books = await _bookService.GetBorrowedToCurrentUserAsync(pagination, uid);
                 return Ok(books);
             }
             catch (RecordNotFoundException)
@@ -42,9 +47,15 @@ namespace API.Controllers
         [Route("away/")]
         public async Task<IActionResult> GetBooksBorrowedFromMeAsync([FromQuery] Pagination pagination)
         {
+            var uid = GetCuurentUserId();
+            if (uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                var books = await _bookService.GetBorrowedFromCurrentUserAsync(pagination, "");
+                var books = await _bookService.GetBorrowedFromCurrentUserAsync(pagination, uid);
                 return Ok(books);
             }
             catch (RecordNotFoundException)
@@ -61,14 +72,24 @@ namespace API.Controllers
         [Route("borrow/")]
         public async Task<IActionResult> BorrowABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)    // dto-> userid, bookid
         {
+            var uid = GetCuurentUserId();
+            if(uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                await _borrowingService.HandleBorrowingBookAsync(returnAndBorrow);
+                await _borrowingService.HandleBorrowingBookAsync(returnAndBorrow, uid);
                 return Ok();
             }
             catch (RecordNotFoundException)
             {
                 return NotFound();
+            }
+            catch (ValidationFailedException)
+            {
+                return BadRequest();
             }
             catch (Exception)
             {
@@ -80,9 +101,15 @@ namespace API.Controllers
         [Route("return/")]
         public async Task<IActionResult> ReturnABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)   // dto-> userid, bookid
         {
+            var uid = GetCuurentUserId();
+            if (uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                await _borrowingService.HandleReturningBookAsync(returnAndBorrow);
+                await _borrowingService.HandleReturningBookAsync(returnAndBorrow, uid);
                 return Ok();
             }
             catch (RecordNotFoundException)

@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [ApiController]
     [Route("api/v1/book/")]
-    public class BookController : ControllerBase
+    public class BookController : BaseApiController
     {
         private readonly IBookService _bookService;
 
@@ -25,6 +24,10 @@ namespace API.Controllers
                 var books = await _bookService.GetAllBooksAsync(pagination, advancedSearch);
                 return Ok(books);
             }
+            catch (ValidationFailedException)
+            {
+                return BadRequest();
+            }
             catch (Exception)
             {
                 return StatusCode(500);
@@ -35,14 +38,25 @@ namespace API.Controllers
         [Route("my/")]
         public async Task<IActionResult> GetMyListedBooks([FromQuery] Pagination pagination)
         {
+            var id = GetCuurentUserId();
+
+            if(id is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                var books = await _bookService.GetListingsOfCurrentUserAsync(pagination, "");
+                var books = await _bookService.GetListingsOfCurrentUserAsync(pagination, id);
                 return Ok(books);
             }
             catch (RecordNotFoundException)
             {
                 return NotFound();
+            }
+            catch (ValidationFailedException)
+            {
+                return BadRequest();
             }
             catch (Exception)
             {
@@ -72,10 +86,20 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateABookAsync([FromBody] BookCreate bookCreate) // dto->isbn, name, imgurl, authorname[]
         {
+            var uid = GetCuurentUserId();
+            if (uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                await _bookService.HandleCreateBookAsync(bookCreate);
+                await _bookService.HandleCreateBookAsync(bookCreate, uid);
                 return Created();
+            }
+            catch (AlreadyExistsException)
+            {
+                return BadRequest();
             }
             catch (ValidationFailedException)
             {
@@ -90,9 +114,15 @@ namespace API.Controllers
         [HttpPatch]
         public async Task<IActionResult> ModifyBookAsync([FromBody] ModifyBook modifyBook)    // dto->id, isbn, name, imgurl, authors[], status
         {
+            var uid = GetCuurentUserId();
+            if (uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                await _bookService.HandleModifyBookAsync(modifyBook);
+                await _bookService.HandleModifyBookAsync(modifyBook, uid);
                 return Ok();
             }
             catch (RecordNotFoundException)
@@ -113,9 +143,15 @@ namespace API.Controllers
         [Route("{bookId}")]
         public async Task<IActionResult> DeleteBookAsync([FromRoute] string bookId)
         {
+            var uid = GetCuurentUserId();
+            if (uid is null)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                await _bookService.HandleDeleteBookAsync(bookId);
+                await _bookService.HandleDeleteBookAsync(bookId, uid);
                 return Ok();
             }
             catch (RecordNotFoundException)

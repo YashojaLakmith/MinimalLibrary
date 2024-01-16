@@ -9,9 +9,8 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace API.Controllers
 {
-    [ApiController]
     [Route("api/v1/auth/")]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseApiController
     {
         private readonly IDistributedCache _distributedCache;
         private readonly IUserAccountService _accountService;
@@ -28,12 +27,17 @@ namespace API.Controllers
         {
             try
             {
-                if (!await _accountService.VerifyPasswordAsync(loginInformation))
+                if(GetCuurentUserId() is not null)
                 {
                     return BadRequest();
                 }
 
                 if (Request.Cookies.TryGetValue("session", out string? sessionToken))
+                {
+                    return BadRequest();
+                }
+
+                if (!await _accountService.VerifyPasswordAsync(loginInformation))
                 {
                     return BadRequest();
                 }

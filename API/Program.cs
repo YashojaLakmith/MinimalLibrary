@@ -12,7 +12,10 @@ namespace API
             var env = builder.Environment;
 
             services.AddControllers(o => o.SuppressAsyncSuffixInActionNames = false);
-            services.AddDistributedRedisCache(o => o.Configuration = "");
+            services.AddStackExchangeRedisCache(o =>
+            {
+                o.Configuration = "";
+            });
             services.AddAuthentication(UserAuthenticationHandler.SCHEME_NAME)
                             .AddScheme<AuthenticationSchemeOptions, UserAuthenticationHandler>(UserAuthenticationHandler.SCHEME_NAME, null);
 
