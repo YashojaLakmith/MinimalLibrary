@@ -15,9 +15,9 @@ namespace Domain.Services.DefaultImplementations
             _bookData = bookData;
         }
 
-        public async Task HandleBorrowingBookAsync(string currentUser, ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
+        public async Task HandleBorrowingBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
         {
-            if(currentUser == returnAndBorrow.UserId)
+            if(userId == returnAndBorrow.UserId)
             {
                 throw new ValidationFailedException("Owner and borrower cannot be the same");
             }
@@ -25,7 +25,7 @@ namespace Domain.Services.DefaultImplementations
             var book = await _bookData.GetBookByIdAsync(returnAndBorrow.BookId, cancellationToken) ?? throw new RecordNotFoundException("Book");
             var user = await _userData.GetUserByIdAsync(returnAndBorrow.UserId, cancellationToken) ?? throw new RecordNotFoundException("User");
             
-            if(book.Owner.UserId != currentUser)
+            if(book.Owner.UserId != userId)
             {
                 throw new ValidationFailedException("Owner");
             }
@@ -39,9 +39,9 @@ namespace Domain.Services.DefaultImplementations
             await _bookData.ModifyBookAsync(book, cancellationToken);
         }
 
-        public async Task HandleReturningBookAsync(string currentUser, ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
+        public async Task HandleReturningBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
         {
-            if (currentUser == returnAndBorrow.UserId)
+            if (userId == returnAndBorrow.UserId)
             {
                 throw new ValidationFailedException("Owner and borrower cannot be the same");
             }
@@ -49,7 +49,7 @@ namespace Domain.Services.DefaultImplementations
             var book = await _bookData.GetBookByIdAsync(returnAndBorrow.BookId, cancellationToken) ?? throw new RecordNotFoundException("Book");
             var user = await _userData.GetUserByIdAsync(returnAndBorrow.UserId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
-            if(book.Owner.UserId != currentUser)
+            if(book.Owner.UserId != userId)
             {
                 throw new ValidationFailedException("Owner");
             }
