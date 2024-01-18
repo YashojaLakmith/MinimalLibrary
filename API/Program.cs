@@ -1,3 +1,5 @@
+using API.Options;
+
 using DataLayer;
 
 using Domain.DataAccess;
@@ -5,6 +7,7 @@ using Domain.Services;
 using Domain.Services.DefaultImplementations;
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Caching.Distributed;
 
 using MongoDB.Driver;
 
@@ -31,8 +34,13 @@ namespace API
             services.AddAuthentication(UserAuthenticationHandler.SCHEME_NAME)
                             .AddScheme<AuthenticationSchemeOptions, UserAuthenticationHandler>(UserAuthenticationHandler.SCHEME_NAME, null);
 
+            services.AddSingleton(new SessionCacheOptions());
+            services.AddSingleton(new ResetTokenCacheOptions());
+            services.AddSingleton(new SessionCookieOptions());
+
             services.AddScoped<IUserDataAccess, UserDataAccess>();
             services.AddScoped<IBookDataAccess, BookDataAccess>();
+
             services.AddScoped<IUserAccountService, DefaultUserAccountService>();
             services.AddScoped<IBookService, DefaultBookService>();
             services.AddScoped<IBorrowingService, DefaultBorrowingService>();

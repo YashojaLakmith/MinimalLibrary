@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using System.Text.Encodings.Web;
 
+using API.Options;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
@@ -21,7 +23,7 @@ namespace API
         {
             try
             {
-                if (!Request.Cookies.TryGetValue("session", out string? sessionToken))
+                if (!Request.Cookies.TryGetValue(SessionCookieOptions.COOKIE_NAME, out string? sessionToken))
                 {
                     return AuthenticateResult.Fail("No session value");
                 }

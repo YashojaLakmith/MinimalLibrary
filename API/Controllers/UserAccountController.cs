@@ -1,19 +1,31 @@
-﻿using Domain.Dto;
+﻿using API.Helpers;
+using API.Options;
+
+using Domain.Dto;
 using Domain.Exceptions;
 using Domain.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/v1/user")]
     public class UserAccountController : BaseApiController
     {
         private readonly IUserAccountService _userService;
+        private readonly IDistributedCache _distributedCache;
+        private readonly SessionCacheOptions _sessionCacheOptions;
+        private readonly SessionCookieOptions _sessionCookieOptions;
 
-        public UserAccountController(IUserAccountService userAccountService)
+        public UserAccountController(IUserAccountService userAccountService, IDistributedCache distributedCache, SessionCacheOptions sessionCacheOptions, SessionCookieOptions cookieOptions)
         {
             _userService = userAccountService;
+            _distributedCache = distributedCache;
+            _sessionCacheOptions = sessionCacheOptions;
+            _sessionCookieOptions = cookieOptions;
         }
 
         [HttpGet]
@@ -24,9 +36,9 @@ namespace API.Controllers
                 var users = await _userService.GetAllUsersAsync(advancedSearch);
                 return Ok(users);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -36,16 +48,16 @@ namespace API.Controllers
 
         [HttpGet]
         [Route("{userId}")]
-        public async Task<IActionResult> GetUserAsync([FromRoute]string userId) //redirect if id=me
+        public async Task<IActionResult> GetUserAsync([FromRoute]string userId)
         {
             try
             {
                 var user = await _userService.GetSpecificUserAsync(userId);
                 return Ok(user);
             }
-            catch (RecordNotFoundException)
+            catch (RecordNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
@@ -57,10 +69,10 @@ namespace API.Controllers
         [Route("me/")]
         public async Task<IActionResult> GetMyAccountAsync()
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -68,9 +80,9 @@ namespace API.Controllers
                 var me = await _userService.GetCurrentUserAsync(uid);
                 return Ok(me);
             }
-            catch (RecordNotFoundException)
+            catch (RecordNotFoundException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -78,21 +90,32 @@ namespace API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> CreateUserAsync([FromBody] UserCreation userCreation)    //dto-> id, name, address, email, pw
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserCreation userCreation)
         {
+            if(GetCurrentUserId() is not null)
+            {
+                return BadRequest("There is an active session.");
+            }
+
             try
             {
                 await _userService.CreateUserAsync(userCreation);
-                return Ok();
+                var sessionToken = SessionTokenHandler.GenerarateASessionToken();
+
+                await _distributedCache.SetStringAsync(sessionToken, userCreation.UserId, _sessionCacheOptions);
+                Response.Cookies.Append(SessionCookieOptions.COOKIE_NAME, sessionToken, _sessionCookieOptions);
+
+                return CreatedAtAction(nameof(GetMyAccountAsync), null, null);
             }
-            catch (AlreadyExistsException)
+            catch (AlreadyExistsException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -101,17 +124,17 @@ namespace API.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> ModifyUserAsync([FromBody] UserModification userModification)    //dto-> id, name, address, email
+        public async Task<IActionResult> ModifyUserAsync([FromBody] UserModification userModification)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             if(uid != userModification.UserId)
             {
-                return BadRequest();
+                return BadRequest("Given user information does not match with the logged in user.");
             }
 
             try
@@ -119,13 +142,13 @@ namespace API.Controllers
                 await _userService.ModifyUserAsync(userModification);
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch (RecordNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -135,17 +158,17 @@ namespace API.Controllers
 
         [HttpPatch]
         [Route("change-password")]
-        public async Task<IActionResult> ChangePasswordAsync([FromBody] PasswordChange passwordChange) //dto-> old pw, new pw
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] PasswordChange passwordChange)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             if(uid != passwordChange.UserId)
             {
-                return Unauthorized();
+                return Unauthorized("Given user information does not match with the logged in user.");
             }
 
             try
@@ -153,13 +176,17 @@ namespace API.Controllers
                 await _userService.ChangePasswordAsync(passwordChange);
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch (ValidationFailedException ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
             }
-            catch (ArgumentException)
+            catch (RecordNotFoundException ex)
             {
-                return BadRequest();
+                return NotFound(ex.Message);
+            }
+            catch(AuthenticationException ex)
+            {
+                return Unauthorized(ex.Message);
             }
             catch (Exception)
             {
@@ -168,27 +195,39 @@ namespace API.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUserAsync([FromBody] string password)    //dto->pw
+        public async Task<IActionResult> DeleteUserAsync([FromBody] string password)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
+            }
+
+            if (!Request.Cookies.TryGetValue(SessionCookieOptions.COOKIE_NAME, out string? sessionId))
+            {
+                return Unauthorized("There is not active session.");
             }
 
             try
-            {
+            {                
                 if(await _userService.VerifyPasswordAsync(new LoginInformation(uid, password)))
                 {
-                    return BadRequest();
+                    return BadRequest("Incorrect credentials.");
                 }
 
                 await _userService.DeleteUserAsync(uid, password);
+                await _distributedCache.RemoveAsync(sessionId);
+                Response.Cookies.Delete(sessionId);
+
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch (ValidationFailedException ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
+            }
+            catch (RecordNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
