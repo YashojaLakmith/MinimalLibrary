@@ -1,18 +1,20 @@
-﻿namespace Domain.BaseEntities
+﻿using System.Text.RegularExpressions;
+
+namespace Domain.BaseEntities
 {
     /// <summary>
     /// Base class for Users
     /// </summary>
-    public class UserBase : IEquatable<UserBase>
+    public abstract class UserBase : IEquatable<UserBase>
     {
         public string UserId { get; }
         public string UserName { get; protected set; }
         public Address UserAddress { get; protected set; }
         public string EmailAddress { get; protected set; }
         public bool IsActive {  get; protected set; }
-        public IReadOnlyCollection<BookBase> ListedBooks { get; protected set; }
-        public IReadOnlyCollection<BookBase> BorrowedOut { get; protected set; }
-        public IReadOnlyCollection<BookBase> BorrowedIn { get; protected set; }
+        public IEnumerable<BookBase> ListedBooks { get; protected set; }
+        public IEnumerable<BookBase> BorrowedOut { get; protected set; }
+        public IEnumerable<BookBase> BorrowedIn { get; protected set; }
 
         protected UserBase(string userId)
         {
@@ -54,5 +56,21 @@
         {
             return !(left == right);
         }
+
+        public abstract UserBase SetUserName(string userName);
+
+        public abstract UserBase SetAddress(Address addr);
+
+        public abstract UserBase SetEmail(string email);
+
+        public abstract UserBase SetActivationStatus(bool status);
+
+        public abstract UserBase SetListedBooks(IEnumerable<BookBase> books);
+
+        public abstract UserBase SetBorrowedInBooks(IEnumerable<BookBase> books);
+
+        public abstract UserBase SetBorrowedAwayBooks(IEnumerable<BookBase> books);
+
+        public abstract bool IsValidModel();
     }
 }

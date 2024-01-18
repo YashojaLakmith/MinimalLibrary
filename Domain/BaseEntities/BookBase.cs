@@ -11,7 +11,7 @@
         public UserBase Owner { get; protected set; }
         public UserBase? CurrentHolder { get; protected set; }
         public string BookImgUrl { get; protected set; }
-        public IReadOnlyCollection<string> Authors { get; protected set; }
+        public IEnumerable<string> Authors { get; protected set; }
         public BookAvailability BookAvailability { get; protected set; }
 
         protected BookBase(string id, string bookName)
@@ -56,5 +56,19 @@
         {
             return !(left == right);
         }
+
+        public abstract BookBase SetOwner(UserBase owner);
+
+        public abstract BookBase SetISBN(string isbn);
+
+        public abstract BookBase SetHolder(UserBase? holder);
+
+        public abstract BookBase SetImageURL(string imageURL);
+
+        public abstract BookBase SetAvailability(BookAvailability availability);
+
+        public abstract BookBase SetAuthors(IEnumerable<string> authors);
+
+        public abstract bool IsValidModel();
     }
 }
