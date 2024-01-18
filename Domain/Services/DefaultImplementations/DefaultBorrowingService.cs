@@ -17,6 +17,8 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task HandleBorrowingBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
         {
+            returnAndBorrow.Validate();
+
             if(userId == returnAndBorrow.UserId)
             {
                 throw new ValidationFailedException("Owner and borrower cannot be the same");
@@ -41,6 +43,8 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task HandleReturningBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
         {
+            returnAndBorrow.Validate();
+
             if (userId == returnAndBorrow.UserId)
             {
                 throw new ValidationFailedException("Owner and borrower cannot be the same");
