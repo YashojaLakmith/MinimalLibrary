@@ -22,7 +22,7 @@ namespace Domain
             return new User(id);
         }
 
-        public User SetUserName(string userName)
+        public override User SetUserName(string userName)
         {
             ArgumentException.ThrowIfNullOrEmpty(userName, nameof(userName));
 
@@ -30,13 +30,13 @@ namespace Domain
             return this;
         }
 
-        public User SetAddress(Address addr)
+        public override User SetAddress(Address addr)
         {
             UserAddress = addr;
             return this;
         }
 
-        public User SetEmail(string email)
+        public override User SetEmail(string email)
         {
             string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
 
@@ -49,25 +49,25 @@ namespace Domain
             return this;
         }
 
-        public User SetActivationStatus(bool status)
+        public override User SetActivationStatus(bool status)
         {
             IsActive = status;
             return this;
         }
 
-        public User SetListedBooks(IReadOnlyCollection<BookBase> books)
+        public override User SetListedBooks(IEnumerable<BookBase> books)
         {
             ListedBooks = books;
             return this;
         }
 
-        public User SetBorrowedInBooks(IReadOnlyCollection<BookBase> books)
+        public override User SetBorrowedInBooks(IEnumerable<BookBase> books)
         {
             BorrowedIn = books;
             return this;
         }
 
-        public User SetBorrowedAwayBooks(IReadOnlyCollection<BookBase> books)
+        public override User SetBorrowedAwayBooks(IEnumerable<BookBase> books)
         {
             BorrowedOut = books;
             return this;
@@ -99,6 +99,18 @@ namespace Domain
             PasswordHash = pw;
             Salt = salt;
             return this;
+        }
+
+        public override bool IsValidModel()
+        {
+            if(string.IsNullOrEmpty(UserId)) return false;
+            if(string.IsNullOrEmpty(UserName)) return false;
+            if(string.IsNullOrEmpty(EmailAddress)) return false;
+            if (UserAddress is null) return false;
+            if (PasswordHash is null) return false;
+            if (Salt is null) return false;
+
+            return true;
         }
     }
 }

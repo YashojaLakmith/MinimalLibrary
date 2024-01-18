@@ -17,25 +17,25 @@ namespace Domain
             return new Book(id, name);
         }
 
-        public Book SetOwner(UserBase owner)
+        public override Book SetOwner(UserBase owner)
         {
             Owner = owner;
             return this;
         }
 
-        public Book SetISBN(string isbn)
+        public override Book SetISBN(string isbn)
         {
             ArgumentNullException.ThrowIfNull(isbn);
             return this;
         }
 
-        public Book SetHolder(UserBase? holder)
+        public override Book SetHolder(UserBase? holder)
         {
             CurrentHolder = holder;
             return this;
         }
 
-        public Book SetImageURL(string imageURL)
+        public override Book SetImageURL(string imageURL)
         {
             if (string.IsNullOrEmpty(imageURL))
             {
@@ -49,16 +49,26 @@ namespace Domain
             return this;
         }
 
-        public Book SetAvailability(BookAvailability availability)
+        public override Book SetAvailability(BookAvailability availability)
         {
             BookAvailability = availability;
             return this;
         }
 
-        public Book SetAuthors(IReadOnlyCollection<string> authors)
+        public override Book SetAuthors(IEnumerable<string> authors)
         {
             Authors = authors;
             return this;
+        }
+
+        public override bool IsValidModel()
+        {
+            if (string.IsNullOrEmpty(BookId)) return false;            
+            if(string.IsNullOrEmpty(BookName)) return false;
+            if (Owner is null) return false;
+            if (!Authors.Any()) return false;
+
+            return true;
         }
     }
 }
