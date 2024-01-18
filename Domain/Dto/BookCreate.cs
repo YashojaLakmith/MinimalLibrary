@@ -1,25 +1,26 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-
+﻿using Domain.Exceptions;
 using Domain.Validations;
 
 namespace Domain.Dto
 {
-    public record BookCreate(
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Name cannot be null or empty.")]
-        [MinLength(1, ErrorMessage = "Length of name cannot be less than 1 character.")]
-        [MaxLength(200, ErrorMessage = "Length of name cannot be more than 200 characters.")]
-        string BookName,
+    public record BookCreate(string BookName, string[] AuthorNames, string ISBN = "", string BookImageURL = "#") : IValidatable
+    {
+        public void Validate()
+        {
+            if (string.IsNullOrEmpty(BookName)) throw new ValidationFailedException("Name cannot be null or empty.");
+            if (BookName.Length < 1 || BookName.Length > 200) throw new ValidationFailedException("Length of name cannot be less than 1 character and more than 200 characters.");
+            
+            if (AuthorNames is null || AuthorNames.Length < 1) throw new ValidationFailedException("Book must have at least 1 author.");
+            if (AuthorNames.Length > 25) throw new ValidationFailedException("Book must not have at more than 25 authors.");
 
-        [Required(ErrorMessage = "Book must have at least 1 author.")]
-        [MinLength(1, ErrorMessage = "Book must have at least 1 author.")]
-        [MaxLength(25, ErrorMessage = "Book must not have more than 25 authors")]
-        [StringLegthInCollection(1, 200, ErrorMessage = "Author name must be between 1 and 200 characters long.")]
-        string[] AuthorNames,
+            foreach (var author in AuthorNames)
+            {
+                if (string.IsNullOrEmpty(author)) throw new ValidationFailedException("Author name cannot be empty.");
+                if (author.Length > 200) throw new ValidationFailedException("Author name must not have more than 200 characters.");
+            }
 
-        [MaxLength(13, ErrorMessage = "ISBN cannot be exceed 13 characters.")]
-        string ISBN = "",
-
-        [DataType(DataType.Url)]
-        string BookImageURL = "#");
+            if (ISBN is not null && ISBN.Length > 13) throw new ValidationFailedException("ISBN cannot exceed 13 characters.");
+            if (BookImageURL is not null && BookImageURL.Length > 1250) throw new ValidationFailedException("Image URL cannot exceed 1250 characters.");
+        }
+    }
 }

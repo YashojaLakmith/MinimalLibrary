@@ -1,13 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Domain.Exceptions;
+using Domain.Validations;
 
 namespace Domain.Dto
 {
-    public record ReturnAndBorrow(
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Book id is required.")]
-        [Length(36, 36, ErrorMessage = "Book id must have 36 characters.")]
-        string BookId,
+    public record ReturnAndBorrow(string BookId, string UserId) : IValidatable
+    {
+        public void Validate()
+        {
+            if (string.IsNullOrEmpty(BookId)) throw new ValidationFailedException("Book Id is required.");
+            if (BookId.Length != 36) throw new ValidationFailedException("Id must have 36 characters.");
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "User Id is required.")]
-        [MaxLength(100, ErrorMessage = "User Id length must not be more than 100 characters.")]
-        string UserId);
+            if (string.IsNullOrEmpty(UserId)) throw new ValidationFailedException("User Id is required.");
+            if (UserId.Length > 100) throw new ValidationFailedException("User Id length must not be more than 100 characters.");
+        }
+    }
 }

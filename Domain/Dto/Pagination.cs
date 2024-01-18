@@ -1,11 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Domain.Exceptions;
+using Domain.Validations;
 
 namespace Domain.Dto
 {
-    public record Pagination(
-        [Range(1, short.MaxValue, ErrorMessage = "Page number cannot be less than 1 or greater than 32767")]
-        int PageNo = 1,
-
-        [Range(10, 100, ErrorMessage = "Result count per page cannot be less than 10 or greater than 100")]
-        int ResultsCount = 10);
+    public record Pagination(int PageNo = 1, int ResultsCount = 10) : IValidatable
+    {
+        public void Validate()
+        {
+            if (PageNo < 1 || PageNo > short.MaxValue) throw new ValidationFailedException($"Page number cannot be less than 1 or greater than {short.MaxValue}.");
+            if (ResultsCount < 10 || ResultsCount > 100) throw new ValidationFailedException("Result count per page cannot be less than 10 or greater than 100.");
+        }
+    }
 }
