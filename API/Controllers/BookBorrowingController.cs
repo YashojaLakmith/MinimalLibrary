@@ -2,10 +2,12 @@
 using Domain.Exceptions;
 using Domain.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/v1/borrowings/")]
     public class BookBorrowingController : BaseApiController
     {
@@ -22,10 +24,10 @@ namespace API.Controllers
         [Route("in/")]
         public async Task<IActionResult> GetBooksBorrowedByMeAsync([FromQuery] Pagination pagination)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -33,9 +35,13 @@ namespace API.Controllers
                 var books = await _bookService.GetBorrowedToCurrentUserAsync(pagination, uid);
                 return Ok(books);
             }
-            catch (RecordNotFoundException)
+            catch(ValidationFailedException ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
+            }
+            catch (RecordNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
@@ -47,10 +53,10 @@ namespace API.Controllers
         [Route("away/")]
         public async Task<IActionResult> GetBooksBorrowedFromMeAsync([FromQuery] Pagination pagination)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -58,9 +64,13 @@ namespace API.Controllers
                 var books = await _bookService.GetBorrowedFromCurrentUserAsync(pagination, uid);
                 return Ok(books);
             }
-            catch (RecordNotFoundException)
+            catch(ValidationFailedException ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
+            }
+            catch (RecordNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
@@ -70,12 +80,12 @@ namespace API.Controllers
 
         [HttpPatch]
         [Route("borrow/")]
-        public async Task<IActionResult> BorrowABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)    // dto-> userid, bookid
+        public async Task<IActionResult> BorrowABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if(uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -83,13 +93,13 @@ namespace API.Controllers
                 await _borrowingService.HandleBorrowingBookAsync(returnAndBorrow, uid);
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch (ValidationFailedException ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
             }
-            catch (ValidationFailedException)
+            catch (RecordNotFoundException ex)
             {
-                return BadRequest();
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
@@ -99,12 +109,12 @@ namespace API.Controllers
 
         [HttpPatch]
         [Route("return/")]
-        public async Task<IActionResult> ReturnABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)   // dto-> userid, bookid
+        public async Task<IActionResult> ReturnABookAsync([FromQuery] ReturnAndBorrow returnAndBorrow)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -112,9 +122,13 @@ namespace API.Controllers
                 await _borrowingService.HandleReturningBookAsync(returnAndBorrow, uid);
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch(ValidationFailedException ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
+            }
+            catch (RecordNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {

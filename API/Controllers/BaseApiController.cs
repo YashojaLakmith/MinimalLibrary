@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController]
-    public class BaseApiController : ControllerBase
+    public class BaseApiController : ControllerBase, IContextUserExtractable
     {
         [NonAction]
-        protected string? GetCuurentUserId()
+        public string? GetCurrentUserId()
         {
             var uidClaim = HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
 

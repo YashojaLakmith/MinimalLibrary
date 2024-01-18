@@ -2,10 +2,12 @@
 using Domain.Exceptions;
 using Domain.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [Route("api/v1/book/")]
     public class BookController : BaseApiController
     {
@@ -16,17 +18,18 @@ namespace API.Controllers
             _bookService = bookService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllBooksAsync([FromQuery] Pagination pagination, [FromBody] AdvancedBookSearch advancedSearch)    // dto->pagination
+        public async Task<IActionResult> GetAllBooksAsync([FromQuery] Pagination pagination, [FromBody] AdvancedBookSearch advancedSearch)
         {
             try
             {
                 var books = await _bookService.GetAllBooksAsync(pagination, advancedSearch);
                 return Ok(books);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -38,11 +41,11 @@ namespace API.Controllers
         [Route("my/")]
         public async Task<IActionResult> GetMyListedBooks([FromQuery] Pagination pagination)
         {
-            var id = GetCuurentUserId();
+            var id = GetCurrentUserId();
 
             if(id is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -50,13 +53,13 @@ namespace API.Controllers
                 var books = await _bookService.GetListingsOfCurrentUserAsync(pagination, id);
                 return Ok(books);
             }
-            catch (RecordNotFoundException)
+            catch (RecordNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -73,9 +76,9 @@ namespace API.Controllers
                 var book = await _bookService.GetSpecificBookByIdAsync(bookId);
                 return Ok(book);
             }
-            catch (RecordNotFoundException)
+            catch (RecordNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
@@ -84,12 +87,12 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateABookAsync([FromBody] BookCreate bookCreate) // dto->isbn, name, imgurl, authorname[]
+        public async Task<IActionResult> CreateABookAsync([FromBody] BookCreate bookCreate)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -97,13 +100,13 @@ namespace API.Controllers
                 await _bookService.HandleCreateBookAsync(bookCreate, uid);
                 return Created();
             }
-            catch (AlreadyExistsException)
+            catch (AlreadyExistsException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
             catch (Exception)
             {
@@ -112,12 +115,12 @@ namespace API.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> ModifyBookAsync([FromBody] ModifyBook modifyBook)    // dto->id, isbn, name, imgurl, authors[], status
+        public async Task<IActionResult> ModifyBookAsync([FromBody] ModifyBook modifyBook)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -125,13 +128,17 @@ namespace API.Controllers
                 await _bookService.HandleModifyBookAsync(modifyBook, uid);
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch (RecordNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
-            catch (ValidationFailedException)
+            catch (ValidationFailedException ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
+            }
+            catch(AuthenticationException ex)
+            {
+                return Unauthorized(ex.Message);
             }
             catch (Exception)
             {
@@ -143,10 +150,10 @@ namespace API.Controllers
         [Route("{bookId}")]
         public async Task<IActionResult> DeleteBookAsync([FromRoute] string bookId)
         {
-            var uid = GetCuurentUserId();
+            var uid = GetCurrentUserId();
             if (uid is null)
             {
-                return Unauthorized();
+                return Unauthorized("There is not active session.");
             }
 
             try
@@ -154,9 +161,13 @@ namespace API.Controllers
                 await _bookService.HandleDeleteBookAsync(bookId, uid);
                 return Ok();
             }
-            catch (RecordNotFoundException)
+            catch(AuthenticationException ex)
             {
-                return NotFound();
+                return Unauthorized(ex.Message);
+            }
+            catch (RecordNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception)
             {
