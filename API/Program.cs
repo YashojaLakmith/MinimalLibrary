@@ -3,6 +3,7 @@ using API.Options;
 using DataLayer;
 
 using Domain.DataAccess;
+using Domain.Options;
 using Domain.Services;
 using Domain.Services.DefaultImplementations;
 
@@ -34,6 +35,8 @@ namespace API
             services.AddAuthentication(UserAuthenticationHandler.SCHEME_NAME)
                             .AddScheme<AuthenticationSchemeOptions, UserAuthenticationHandler>(UserAuthenticationHandler.SCHEME_NAME, null);
 
+            services.AddSingleton<IEmailClientOptions>(new SMTPEmailOptions());
+
             services.AddSingleton(new SessionCacheOptions());
             services.AddSingleton(new ResetTokenCacheOptions());
             services.AddSingleton(new SessionCookieOptions());
@@ -44,6 +47,7 @@ namespace API
             services.AddScoped<IUserAccountService, DefaultUserAccountService>();
             services.AddScoped<IBookService, DefaultBookService>();
             services.AddScoped<IBorrowingService, DefaultBorrowingService>();
+            services.AddScoped<IEmailService, DefaultEmailService>();
 
             var app = builder.Build();
 
