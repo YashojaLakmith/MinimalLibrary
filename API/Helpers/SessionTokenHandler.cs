@@ -10,6 +10,27 @@ namespace API.Helpers
             return Convert.ToHexString(bytes);
         }
 
+        /// <exception cref="ArgumentOutOfRangeException"/>
+        public static string GetTokenWithSpecificLength(int length)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(length, 1);
+
+            var bytes = RandomNumberGenerator.GetBytes(length);
+            return Convert.ToHexString(bytes);
+        }
+
+        /// <exception cref="ArgumentOutOfRangeException"/>
+        /// <param name="length">must be between 1 and 9.</param>
+        public static int GetARandomNumber(int length)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(length, 1);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(length, 9);
+
+            var max = (int)Math.Pow(10, length);
+
+            return RandomNumberGenerator.GetInt32(max) % max;
+        }
+
         ///<exception cref="FormatException"/>
         public static bool CompareSessionToken(string token1, string token2)
         {

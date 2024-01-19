@@ -3,7 +3,6 @@ using Domain.DataAccess;
 using Domain.Dto;
 using Domain.Exceptions;
 using Domain.Extensions;
-using Domain.Validations;
 
 namespace Domain.Services.DefaultImplementations
 {
