@@ -6,6 +6,7 @@ using Domain.DataAccess;
 using Domain.Options;
 using Domain.Services;
 using Domain.Services.DefaultImplementations;
+using Domain.Validations;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Distributed;
@@ -40,6 +41,8 @@ namespace API
             services.AddSingleton(new SessionCacheOptions());
             services.AddSingleton(new ResetTokenCacheOptions());
             services.AddSingleton(new SessionCookieOptions());
+
+            services.AddSingleton<IInputDataValidations, InputDataValidations>();
 
             services.AddScoped<IUserDataAccess, UserDataAccess>();
             services.AddScoped<IBookDataAccess, BookDataAccess>();
