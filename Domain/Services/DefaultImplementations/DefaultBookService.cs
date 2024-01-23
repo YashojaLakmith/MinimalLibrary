@@ -3,6 +3,7 @@ using Domain.DataAccess;
 using Domain.Dto;
 using Domain.Exceptions;
 using Domain.Extensions;
+using Domain.Validations;
 
 namespace Domain.Services.DefaultImplementations
 {
@@ -10,17 +11,18 @@ namespace Domain.Services.DefaultImplementations
     {
         private readonly IBookDataAccess _bookData;
         private readonly IUserDataAccess _userData;
+        private readonly IInputDataValidations _dataValidations;
 
-        public DefaultBookService(IBookDataAccess bookData, IUserDataAccess userData)
+        public DefaultBookService(IBookDataAccess bookData, IUserDataAccess userData, IInputDataValidations dataValidations)
         {
             _bookData = bookData;
             _userData = userData;
+            _dataValidations = dataValidations;
         }
 
         public async Task<IEnumerable<BookMinimalInfo>> GetAllBooksAsync(Pagination pagination, AdvancedBookSearch advancedSearch, CancellationToken cancellationToken = default)
         {
-            pagination.Validate();
-            advancedSearch.Validate();
+            _dataValidations.ValidatePagination(pagination.PageNo, pagination.ResultsCount);
 
             (int skip, int take) = Utility.GetSkipAndTake(pagination.PageNo, pagination.ResultsCount);
             return (await _bookData.GetAllBooksAsync(advancedSearch.BookName, advancedSearch.AuthorName, skip, take, cancellationToken))
@@ -29,7 +31,8 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task<IEnumerable<BookWithBorrower>> GetBorrowedFromCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            pagination.Validate();
+            _dataValidations.ValidatePagination(pagination.PageNo, pagination.ResultsCount);
+            _dataValidations.ValidateUserId(userId);
 
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
@@ -40,7 +43,8 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task<IEnumerable<BookMinimalInfo>> GetBorrowedToCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            pagination.Validate();
+            _dataValidations.ValidatePagination(pagination.PageNo, pagination.ResultsCount);
+            _dataValidations.ValidateUserId(userId);
 
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
@@ -51,7 +55,8 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task<IEnumerable<BookMinimalInfo>> GetListingsOfCurrentUserAsync(Pagination pagination, string userId, CancellationToken cancellationToken = default)
         {
-            pagination.Validate();
+            _dataValidations.ValidatePagination(pagination.PageNo, pagination.ResultsCount);
+            _dataValidations.ValidateUserId(userId);
 
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
@@ -62,6 +67,8 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task<BookPublicInfo> GetSpecificBookByIdAsync(string bookId, CancellationToken cancellationToken = default)
         {
+            _dataValidations.ValidateBookId(bookId);
+
             var book = await _bookData.GetBookByIdAsync(bookId, cancellationToken) ?? throw new RecordNotFoundException("Book");
             var user = await _userData.GetUserByIdAsync(book.Owner.UserId, cancellationToken) ?? throw new RecordNotFoundException("User");
 
@@ -71,7 +78,11 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task HandleCreateBookAsync(BookCreate bookCreate, string userId, CancellationToken cancellationToken = default)
         {
-            bookCreate.Validate();
+            _dataValidations.ValidateBookName(bookCreate.BookName);
+            _dataValidations.ValidateAuthorCollection(bookCreate.AuthorNames);
+            _dataValidations.ValidateBookISBN(bookCreate.ISBN);
+            _dataValidations.ValidateBookImageURL(bookCreate.BookImageURL);
+            _dataValidations.ValidateUserId(userId);
 
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException("User");
             var newBook = Book.CreateBook(Guid.NewGuid().ToString(), bookCreate.BookName)
@@ -87,6 +98,9 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task HandleDeleteBookAsync(string bookId, string userId, CancellationToken cancellationToken = default)
         {
+            _dataValidations.ValidateBookId(bookId);
+            _dataValidations.ValidateUserId(userId);
+
             var book = await _bookData.GetBookByIdAsync(bookId, cancellationToken) ?? throw new RecordNotFoundException("Book");
             if(book.Owner.UserId != userId)
             {
@@ -98,7 +112,12 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task HandleModifyBookAsync(ModifyBook modifyBook, string userId, CancellationToken cancellationToken = default)
         {
-            modifyBook.Validate();
+            _dataValidations.ValidateBookId(modifyBook.BookId);
+            _dataValidations.ValidateBookName(modifyBook.BookName);
+            _dataValidations.ValidateAuthorCollection(modifyBook.AuthorNames);
+            _dataValidations.ValidateBookISBN(modifyBook.ISBN);
+            _dataValidations.ValidateBookImageURL(modifyBook.BookImageURL);
+            _dataValidations.ValidateUserId(userId);
 
             var book = await _bookData.GetBookByIdAsync(modifyBook.BookId, cancellationToken) ?? throw new RecordNotFoundException("Book");
             if (book.Owner.UserId != userId)

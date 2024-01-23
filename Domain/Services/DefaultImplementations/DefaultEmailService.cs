@@ -1,6 +1,7 @@
 ﻿using Domain.DataAccess;
 using Domain.Exceptions;
 using Domain.Options;
+using Domain.Validations;
 
 using MailKit.Net.Smtp;
 
@@ -13,18 +14,17 @@ namespace Domain.Services.DefaultImplementations
     {
         private readonly IUserDataAccess _userData;
         private readonly IEmailClientOptions _emailOptions;
+        private readonly IInputDataValidations _dataValidations;
 
-        public DefaultEmailService(IUserDataAccess userData, IEmailClientOptions emailOptions)
+        public DefaultEmailService(IUserDataAccess userData, IEmailClientOptions emailOptions, IInputDataValidations dataValidations)
         {
             _userData = userData;
             _emailOptions = emailOptions;
+            _dataValidations = dataValidations;
         }
         public async Task SendEmailToARegisteredUserAsync(string userId, string subject, string body, CancellationToken cancellationToken = default)
         {
-            if(string.IsNullOrEmpty(userId))
-            {
-                throw new ValidationFailedException("UserId is required.");
-            }
+            _dataValidations.ValidateUserId(userId);
 
             var user = await _userData.GetUserByIdAsync(userId, cancellationToken) ?? throw new RecordNotFoundException($"User with id: {userId} not found.");
 

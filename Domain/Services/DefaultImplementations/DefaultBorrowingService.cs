@@ -1,6 +1,7 @@
 ﻿using Domain.DataAccess;
 using Domain.Dto;
 using Domain.Exceptions;
+using Domain.Validations;
 
 namespace Domain.Services.DefaultImplementations
 {
@@ -8,16 +9,20 @@ namespace Domain.Services.DefaultImplementations
     {
         private readonly IUserDataAccess _userData;
         private readonly IBookDataAccess _bookData;
+        private readonly IInputDataValidations _dataValidations;
 
-        public DefaultBorrowingService(IUserDataAccess userData, IBookDataAccess bookData)
+        public DefaultBorrowingService(IUserDataAccess userData, IBookDataAccess bookData, IInputDataValidations dataValidations)
         {
             _userData = userData;
             _bookData = bookData;
+            _dataValidations = dataValidations;
         }
 
         public async Task HandleBorrowingBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
         {
-            returnAndBorrow.Validate();
+            _dataValidations.ValidateBookId(returnAndBorrow.BookId);
+            _dataValidations.ValidateUserId(returnAndBorrow.UserId);
+            _dataValidations.ValidateUserId(userId);
 
             if(userId == returnAndBorrow.UserId)
             {
@@ -43,7 +48,9 @@ namespace Domain.Services.DefaultImplementations
 
         public async Task HandleReturningBookAsync(ReturnAndBorrow returnAndBorrow, string userId, CancellationToken cancellationToken = default)
         {
-            returnAndBorrow.Validate();
+            _dataValidations.ValidateBookId(returnAndBorrow.BookId);
+            _dataValidations.ValidateUserId(returnAndBorrow.UserId);
+            _dataValidations.ValidateUserId(userId);
 
             if (userId == returnAndBorrow.UserId)
             {
